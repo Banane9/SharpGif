@@ -5,12 +5,12 @@ using System.Linq;
 namespace SharpGif
 {
     /// <summary>
-    /// Represents the logican screen decriptor behind the header of a gif image/file.
+    /// Represents the logical screen decriptor after the header of a gif image/file.
     /// </summary>
     public sealed class GifLogicalScreenDescriptor
     {
         /// <summary>
-        /// 7
+        /// 7 bytes.
         /// </summary>
         private const byte size = 7;
 
@@ -20,12 +20,12 @@ namespace SharpGif
         public byte BackgroundColorIndex { get; private set; }
 
         /// <summary>
-        /// Gets the height of the canvas that the encoded imaged will be displayed on.
+        /// Gets the height of the canvas (in pixels) that the encoded imaged will be displayed on.
         /// </summary>
         public ushort CanvasHeight { get; private set; }
 
         /// <summary>
-        /// Gets the width of the canvas that the encoded images will be displayed on.
+        /// Gets the width of the canvas (in pixels) that the encoded images will be displayed on.
         /// </summary>
         public ushort CanvasWidth { get; private set; }
 
@@ -67,6 +67,9 @@ namespace SharpGif
         /// </summary>
         public byte SizeOfColorTable { get; private set; }
 
+        internal GifLogicalScreenDescriptor()
+        { }
+
         /// <summary>
         /// Gets the <see cref="GifLogicalScreenDescriptor"/> corresponding to the byte representation.
         /// </summary>
@@ -97,18 +100,18 @@ namespace SharpGif
         /// <returns>Byte array containing the byte representation of the <see cref="GifLogicalScreenDescriptor"/>.</returns>
         internal byte[] GetBytes()
         {
-            // All byte representations of numbers are LSB (least significant bit) first
             var bytes = new byte[size];
 
+            // All byte representations of numbers are LSB (least significant bit) first
             // First the canvas width
             // For example 1920 in binary is 0000 0111  1000 0000 (MSB first), when AND-ed with 0000 0000  1111 1111 it will only leave 0000 0000  1000 0000
             bytes[0] = (byte)(CanvasWidth & byte.MaxValue);
             // Simply shift the more significant byte down
-            bytes[1] |= (byte)(CanvasWidth >> 8);
+            bytes[1] = (byte)(CanvasWidth >> 8);
 
             // Then the same for the canvas height
             bytes[2] = (byte)(CanvasHeight & byte.MaxValue);
-            bytes[3] |= (byte)(CanvasHeight >> 8);
+            bytes[3] = (byte)(CanvasHeight >> 8);
 
             // Now comes a packed byte
             // First bit is a flag for the global color table. 0x80 is 1000 0000

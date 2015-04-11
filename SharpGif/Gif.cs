@@ -2,6 +2,9 @@
 {
     public sealed class Gif
     {
+        /// <summary>
+        /// Hex: 3B; Char: ';'
+        /// </summary>
         internal const char Trailer = ';';
 
         /// <summary>

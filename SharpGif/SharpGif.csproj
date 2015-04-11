@@ -39,6 +39,7 @@
   <ItemGroup>
     <Compile Include="Gif.cs" />
     <Compile Include="GifColorTable.cs" />
+    <Compile Include="GifFrameDescriptor.cs" />
     <Compile Include="GifHeader.cs" />
     <Compile Include="GifLogicalScreenDescriptor.cs" />
     <Compile Include="IEnumerableExtension.cs" />
