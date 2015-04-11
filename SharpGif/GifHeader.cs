@@ -5,7 +5,7 @@ using System.Linq;
 namespace SharpGif
 {
     /// <summary>
-    /// Represents a Gif Header.
+    /// Represents the header of a gif image/file.
     /// </summary>
     public abstract class GifHeader
     {

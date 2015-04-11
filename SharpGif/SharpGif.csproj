@@ -39,8 +39,8 @@
   <ItemGroup>
     <Compile Include="Gif.cs" />
     <Compile Include="GifColorTable.cs" />
-    <Compile Include="GifFormat.cs" />
     <Compile Include="GifHeader.cs" />
+    <Compile Include="GifLogicalScreenDescriptor.cs" />
     <Compile Include="IEnumerableExtension.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

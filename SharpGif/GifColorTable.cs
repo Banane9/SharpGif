@@ -27,7 +27,7 @@ namespace SharpGif
         /// <summary>
         /// Gets the size number for the screen descriptor, used by the Encoder.
         /// <para/>
-        /// Decoder uses 2^(N+1) (where N is this number) to calculate the size of the color table.
+        /// Decoder uses 2^(N+1) (where N is this number) to calculate the number of entries in the color table.
         /// </summary>
         internal byte ScreenDescriptorSize
         {
@@ -141,7 +141,8 @@ namespace SharpGif
         /// <returns>Byte array containing the byte representation of the <see cref="GifColorTable"/>.</returns>
         internal byte[] GetBytes()
         {
-            var bytes = new byte[(int)Math.Pow(2, ScreenDescriptorSize + 1)];
+            // 3 bytes per entry.
+            var bytes = new byte[(int)Math.Pow(2, ScreenDescriptorSize + 1) * 3];
 
             var i = 0;
             foreach (var color in colors)
