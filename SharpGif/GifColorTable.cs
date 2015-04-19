@@ -15,6 +15,8 @@ namespace SharpGif
         /// </summary>
         public const ushort MaxSize = byte.MaxValue + 1;
 
+        internal const byte MaxScreenDescriptorSize = 7;
+
         private readonly List<Color> colors = new List<Color>();
 
         /// <summary>
@@ -121,14 +123,15 @@ namespace SharpGif
         /// Gets the <see cref="GifColorTable"/> from the byte representation starting from the current position in the <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="GifColorTable"/>.</param>
-        /// <param name="length">The number of entries in the color table.</param>
+        /// <param name="screenDescriptorSize">The number of entries in the color table.</param>
         /// <returns>A <see cref="GifColorTable"/> corresponding to the byte representation.</returns>
-        internal static GifColorTable FromStream(Stream stream, ushort length)
+        internal static GifColorTable FromStream(Stream stream, byte screenDescriptorSize)
         {
-            if (length > MaxSize)
-                throw new ArgumentOutOfRangeException("length", "Color Table can only have a maximum of " + MaxSize + " entries!");
+            if (screenDescriptorSize > MaxScreenDescriptorSize)
+                throw new ArgumentOutOfRangeException("length", "Color Table can only have a maximum Screen Descriptor Size of" + MaxScreenDescriptorSize + "!");
 
             var colorTable = new GifColorTable();
+            var length = GetNumberOfEntries(screenDescriptorSize);
 
             for (var i = 0; i < length; ++i)
                 colorTable.Add(Color.FromStream(stream));
@@ -157,8 +160,9 @@ namespace SharpGif
         }
 
         /// <summary>
-        /// Writes the byte representation of this <see cref="GifColorTable"/> to the <see cref="Stream"/>.
+        /// Writes the byte representation of this <see cref="GifColorTable"/> to the given <see cref="Stream"/>.
         /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> to write to.</param>
         internal void ToStream(Stream stream)
         {
             // 3 bytes per entry.

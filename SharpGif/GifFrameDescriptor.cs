@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace SharpGif
@@ -73,19 +74,19 @@ namespace SharpGif
         { }
 
         /// <summary>
-        /// Gets the <see cref="GifFrameDescriptor"/> corresponding to the byte representation.
+        /// Gets the <see cref="GifFrameDescriptor"/> from the byte representation starting from the current position in the <see cref="Stream"/>.
         /// </summary>
-        /// <param name="bytes">The byte representation of a <see cref="GifFrameDescriptor"/>.</param>
+        /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="GifFrameDescriptor"/>.</param>
         /// <returns>A <see cref="GifFrameDescriptor"/> corresponding to the byte representation.</returns>
-        internal static GifFrameDescriptor FromBytes(byte[] bytes)
+        internal static GifFrameDescriptor FromStream(Stream stream)
         {
-            if (bytes.Length != size)
-                throw new ArgumentOutOfRangeException("bytes", "Has to be " + size + " bytes long!");
+            var bytes = new byte[size];
+            stream.Read(bytes, 0, size);
 
             if (bytes[0] != (byte)separator)
                 throw new FormatException("Bytes have to start with the image separator char/byte value.");
 
-            // Reverse the transformations of GetBytes()
+            // Reverse the transformations of ToStream()
             return new GifFrameDescriptor
             {
                 LeftOffset = (ushort)(bytes[1] | (bytes[2] << 8)),
@@ -100,10 +101,10 @@ namespace SharpGif
         }
 
         /// <summary>
-        /// Gets the byte representation of the <see cref="GifFrameDescriptor"/>.
+        /// Writes the byte representation of this <see cref="GifFrameDescriptor"/> to the given <see cref="Stream"/>.
         /// </summary>
-        /// <returns>Byte array containing the byte representation of the <see cref="GifFrameDescriptor"/>.</returns>
-        internal byte[] GetBytes()
+        /// <param name="stream">The <see cref="Stream"/> to write to.</param>
+        internal void ToStream(Stream stream)
         {
             var bytes = new byte[size];
 
@@ -137,7 +138,7 @@ namespace SharpGif
             // Last three bits are for the size of the global color table. Max value of 7.
             bytes[9] |= (byte)(SizeOfColorTable & 0x7);
 
-            return bytes;
+            stream.Write(bytes, 0, size);
         }
     }
 }

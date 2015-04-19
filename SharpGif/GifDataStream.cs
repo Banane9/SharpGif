@@ -21,9 +21,6 @@ namespace SharpGif
         /// <returns>A <see cref="GifDataStream"/> corresponding to the byte representation.</returns>
         internal static GifDataStream FromStream(Stream stream)
         {
-            if (stream == null)
-                throw new ArgumentNullException("stream", "Stream can't be null!");
-
             var result = new GifDataStream();
 
             var nextBlockLength = stream.ReadByte();
@@ -41,8 +38,9 @@ namespace SharpGif
         }
 
         /// <summary>
-        /// Writes the byte representation of this <see cref="GifDataStream"/> to the <see cref="Stream"/>.
+        /// Writes the byte representation of this <see cref="GifDataStream"/> to the given <see cref="Stream"/>.
         /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> to write to.</param>
         internal void ToStream(Stream stream)
         {
             var fullSubBlocks = (int)Math.Ceiling(data.Count / (float)maxSubBlockLength);
