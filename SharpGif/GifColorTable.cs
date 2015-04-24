@@ -54,7 +54,7 @@ namespace SharpGif
             get { return colors[index]; }
             set
             {
-                if (index > MaxSize || index < 0)
+                if (index >= MaxSize || index < 0)
                     throw new ArgumentOutOfRangeException("index", "Index must be between 0 and 255!");
 
                 colors[index] = value;
