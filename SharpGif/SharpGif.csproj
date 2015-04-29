@@ -35,6 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Gif.cs" />
+    <Compile Include="GifApplicationExtension.cs" />
     <Compile Include="GifColorTable.cs" />
     <Compile Include="GifDataStream.cs" />
     <Compile Include="GifFrame.cs" />

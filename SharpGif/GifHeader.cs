@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace SharpGif
@@ -19,6 +20,8 @@ namespace SharpGif
         /// </summary>
         public static readonly GifHeader Gif89a = new Version89a();
 
+        private const int length = 6;
+
         /// <summary>
         /// Gets the Signature of the Gif Header.
         /// </summary>
@@ -28,11 +31,11 @@ namespace SharpGif
         }
 
         /// <summary>
-        /// Gets the Version fo the Gif Header.
+        /// Gets the Version of the Gif Header.
         /// </summary>
         public abstract string Version { get; }
 
-        internal GifHeader()
+        private GifHeader()
         { }
 
         public override string ToString()
@@ -41,28 +44,52 @@ namespace SharpGif
         }
 
         /// <summary>
-        /// Gets the <see cref="GifHeader"/> corresponding to the byte representation.
+        /// Gets the <see cref="GifHeader"/> from the byte representation starting from the current position in the <see cref="Stream"/>.
         /// </summary>
-        /// <param name="bytes">The byte representation of a <see cref="GifHeader"/>.</param>
+        /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="GifHeader"/>.</param>
         /// <returns>A <see cref="GifHeader"/> corresponding to the byte representation.</returns>
-        internal GifHeader FromBytes(byte[] bytes)
+        internal static GifHeader FromStream(Stream stream)
         {
-            if (bytes == null)
-                throw new ArgumentNullException("headerBytes", "Header Bytes can't be null!");
+            var buffer = new byte[length];
+            stream.Read(buffer, 0, length);
 
-            if (bytes == Gif87a.GetBytes())
-                return Gif87a;
-            else if (bytes == Gif89a.GetBytes())
+            var gif89aBytes = Gif89a.getBytes();
+            var isGif89a = true;
+            for (var i = 0; i < buffer.Length; ++i)
+                if (buffer[i] != gif89aBytes[i])
+                {
+                    isGif89a = false;
+                    break;
+                }
+
+            if (isGif89a)
                 return Gif89a;
-            else
-                throw new ArgumentOutOfRangeException("headerBytes", "Header not recognized!");
+
+            var gif87aBytes = Gif87a.getBytes();
+            var isGif87a = true;
+            for (var i = 0; i < buffer.Length; ++i)
+                if (buffer[i] != gif87aBytes[length])
+                {
+                    isGif87a = false;
+                    break;
+                }
+
+            if (isGif87a)
+                return Gif87a;
+
+            throw new ArgumentOutOfRangeException("stream", "Header not recognized!");
         }
 
         /// <summary>
-        /// Gets the byte representation of the <see cref="GifHeader"/>.
+        /// Writes the byte representation of this <see cref="GifHeader"/> to the given <see cref="Stream"/>.
         /// </summary>
-        /// <returns>Byte array containing the byte representation of the <see cref="GifHeader"/>.</returns>
-        internal byte[] GetBytes()
+        /// <param name="stream">The <see cref="Stream"/> to write to.</param>
+        internal void ToStream(Stream stream)
+        {
+            stream.Write(getBytes(), 0, length);
+        }
+
+        private byte[] getBytes()
         {
             return ToString().Cast<byte>().ToArray();
         }

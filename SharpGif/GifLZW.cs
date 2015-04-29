@@ -9,6 +9,7 @@ namespace SharpGif
     /// <summary>
     /// Contains methods for decoding and encoding of Gif-LZW compressed image data.
     /// </summary>
+    // http://matthewflickinger.com/lab/whatsinagif/lzw_image_data.asp
     public static class GifLZW
     {
         private const byte maxCodeSize = 12;
