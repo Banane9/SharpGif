@@ -151,7 +151,7 @@ namespace SharpGif
                         buildCodeTable(codeTable, startCodeSize);
                         codeSize = (byte)(startCodeSize + 1);
                     }
-                    // Add reset of codeSize
+
                     var prevIndexBuffer = indexBuffer.ToArray();
 
                     indexBuffer.Add(color);

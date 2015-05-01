@@ -7,7 +7,7 @@ namespace SharpGif
         /// <summary>
         /// Hex: 3B; Char: ';'
         /// </summary>
-        internal const char Trailer = ';';
+        private const byte Trailer = 0x3b;
 
         public List<GifFrame> Frames { get; private set; }
 

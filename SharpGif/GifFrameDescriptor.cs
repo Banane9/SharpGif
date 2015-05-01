@@ -13,7 +13,7 @@ namespace SharpGif
         /// <summary>
         /// Hex: 2C; Char: ','
         /// </summary>
-        private const char separator = ',';
+        private const byte separator = 0x2c;
 
         /// <summary>
         /// 10 bytes.
