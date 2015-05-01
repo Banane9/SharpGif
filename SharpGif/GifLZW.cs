@@ -35,8 +35,8 @@ namespace SharpGif
                 throw new ArgumentOutOfRangeException("startCodeSize", "The encoded start code size has to be between 2 and 8!");
 
             var indexStream = new List<byte>();
-            var gifDataStream = GifDataStream.FromStream(stream);
-            using (var codeStream = new BitStream.BitStream(new MemoryStream(gifDataStream.ToArray())))
+            var codeData = GifDataStream.FromStream(stream);
+            using (var codeStream = new BitStream.BitStream(new MemoryStream(codeData)))
             {
                 var codeTable = new List<CodeTableEntry>();
 
@@ -176,7 +176,7 @@ namespace SharpGif
                 codeStream.WriteBits(0, (BitNum)(BitNum.MaxValue - codeStream.BitPosition));
 
                 var codes = ((MemoryStream)codeStream.UnderlayingStream).ToArray();
-                stream.Write(codes, 0, codes.Length);
+                GifDataStream.ToStream(stream, codes);
             }
         }
 

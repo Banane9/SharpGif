@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SharpGif.Extensions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,7 @@ namespace SharpGif
     /// <summary>
     /// Represents a generic gif extension.
     /// </summary>
-    public class GifExtension
+    public abstract class GifExtension
     {
         /// <summary>
         /// Hex: 21; Char: '!'
@@ -18,35 +19,29 @@ namespace SharpGif
         private static Dictionary<byte, Func<byte[], GifExtension>> getSpecificExtension = new Dictionary<byte, Func<byte[], GifExtension>>();
 
         /// <summary>
-        /// Gets the Data for the extension.
-        /// </summary>
-        public byte[] Data { get; protected set; }
-
-        /// <summary>
         /// Gets the Function Code of the extension.
         /// </summary>
-        public byte FunctionCode { get; private set; }
+        public byte FunctionCode { get; set; }
 
+        /// <summary>
+        /// Gets the most specific <see cref="GifExtension"/>-derivate from the byte representation starting from the current position in the <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="GifExtension"/>.</param>
+        /// <returns>A most specific <see cref="GifExtension"/>-derivate corresponding to the byte representation.</returns>
         internal static GifExtension FromStream(Stream stream)
         {
             if (stream.ReadByte() != header)
                 throw new FormatException("Stream has to have an Extension coming up!");
 
             var functionCode = (byte)stream.ReadByte();
-            var data = GifDataStream.FromStream(stream).ToArray();
+            var data = GifDataStream.FromStream(stream);
 
-            if (getSpecificExtension.ContainsKey(functionCode))
-            {
-                var extension = getSpecificExtension[functionCode](data);
-                extension.FunctionCode = functionCode;
-                return extension;
-            }
+            var extension = getSpecificExtension.ContainsKey(functionCode) ?
+                getSpecificExtension[functionCode](data) : new GenericGifExtension(data);
 
-            return new GifExtension
-            {
-                FunctionCode = functionCode,
-                Data = data
-            };
+            extension.FunctionCode = functionCode;
+
+            return extension;
         }
 
         /// <summary>
@@ -63,6 +58,16 @@ namespace SharpGif
         }
 
         /// <summary>
+        /// Writes the byte representation of this <see cref="GifExtension"/> to the given <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> to write to.</param>
+        internal void ToStream(Stream stream)
+        {
+            stream.WriteByte(header);
+            GifDataStream.ToStream(stream, getData());
+        }
+
+        /// <summary>
         /// Registers the function to get an instance of the specific <see cref="GifExtension"/>-derivate for the given function code.
         /// </summary>
         /// <param name="functionCode">The function code of the extension.</param>
@@ -71,5 +76,11 @@ namespace SharpGif
         {
             getSpecificExtension.Add(functionCode, get);
         }
+
+        /// <summary>
+        /// Gets the byte representation of the data of this <see cref="GifExtension"/>.
+        /// </summary>
+        /// <returns>The byte representation of the data of this <see cref="GifExtension"/>.</returns>
+        protected abstract byte[] getData();
     }
 }

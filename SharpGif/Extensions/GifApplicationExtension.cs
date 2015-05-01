@@ -1,13 +1,14 @@
-﻿using System;
+﻿using SharpGif.Extensions.ApplicationExtensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SharpGif
+namespace SharpGif.Extensions
 {
     /// <summary>
     /// Represents a generic gif application extension (a kind of gif extension).
     /// </summary>
-    public class GifApplicationExtension : GifExtension
+    public abstract class GifApplicationExtension : GifExtension
     {
         /// <summary>
         /// 3 bytes.
@@ -49,6 +50,22 @@ namespace SharpGif
             getSpecificApplicationExtension.Add(identifierAndAuth, get);
         }
 
+        /// <summary>
+        /// Gets the byte representation of the data of this <see cref="GifApplicationExtension"/>.
+        /// </summary>
+        /// <returns>The byte representation of the data of this <see cref="GifApplicationExtension"/>.</returns>
+        protected abstract byte[] getApplicationData();
+
+        protected override byte[] getData()
+        {
+            var data = new List<byte>();
+            data.AddRange(Identifier.Cast<byte>());
+            data.AddRange(AuthenticationCode.Cast<byte>());
+            data.AddRange(getApplicationData());
+
+            return data.ToArray();
+        }
+
         private static GifExtension fromBytes(byte[] bytes)
         {
             var identifierAndAuth = new string(bytes.Take(identifierLength + authCodeLength).Cast<char>().ToArray());
@@ -58,9 +75,8 @@ namespace SharpGif
             var authCode = identifierAndAuth.Substring(identifierLength);
 
             var extension = getSpecificApplicationExtension.ContainsKey(identifierAndAuth) ?
-                getSpecificApplicationExtension[identifierAndAuth](data) : new GifApplicationExtension();
+                getSpecificApplicationExtension[identifierAndAuth](data) : new GenericGifApplicationExtension(data);
 
-            extension.Data = data;
             extension.Identifier = identifier;
             extension.AuthenticationCode = authCode;
 
