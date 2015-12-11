@@ -31,6 +31,12 @@ namespace SharpGif.Extensions.ApplicationExtensions
             registerSpecificApplicationExtension(animExtsIdentifierAndAuth, fromBytes);
         }
 
+        internal static void registerSelfAsAppExtension()
+        {
+            registerSpecificApplicationExtension(animExtsIdentifierAndAuth, fromBytes);
+            registerSpecificApplicationExtension(netscapeIdentififierAndAuth, fromBytes);
+        }
+
         protected override byte[] getApplicationData()
         {
             return new[]

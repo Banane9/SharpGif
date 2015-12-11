@@ -40,6 +40,11 @@ namespace SharpGif.Extensions
             registerSpecificExtension(functionCode, fromBytes);
         }
 
+        internal static void registerSelfAsGifExtension()
+        {
+            registerSpecificExtension(functionCode, fromBytes);
+        }
+
         /// <summary>
         /// Registers the function to get an instance of the specific <see cref="GifApplicationExtension"/>-derivate for the given identifier and authentication code.
         /// </summary>
