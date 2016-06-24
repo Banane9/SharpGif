@@ -39,14 +39,16 @@ namespace SharpGif
             using (var codeStream = new BitStream.BitStream(new MemoryStream(codeData)))
             {
                 var codeTable = new List<CodeTableEntry>();
+                buildCodeTable(codeTable, startCodeSize);
 
                 var codeSize = startCodeSize + 1u;
                 var indexBuffer = new List<byte>();
                 CodeTableEntry.CodeType codeType;
                 ushort prevCode = getColorCodeCount(startCodeSize);
+                bool first = true;
                 do
                 {
-                    var codeBytes = new byte[(int)Math.Ceiling(codeSize / 8f)];
+                    var codeBytes = new byte[2];
                     codeStream.ReadBits(codeBytes, 0, codeSize);
                     var code = BitConverter.ToUInt16(codeBytes, 0);
 
@@ -59,16 +61,22 @@ namespace SharpGif
                             case CodeTableEntry.CodeType.Color:
                                 indexStream.AddRange(codeTable[code].Colors);
 
-                                indexBuffer.Clear();
-                                indexBuffer.AddRange(codeTable[prevCode].Colors);
-                                indexBuffer.Add(codeTable[code].Colors[0]);
+                                if (!first)
+                                {
+                                    indexBuffer.Clear();
+                                    indexBuffer.AddRange(codeTable[prevCode].Colors);
+                                    indexBuffer.Add(codeTable[code].Colors[0]);
 
-                                codeTable.Add(new CodeTableEntry(indexBuffer.ToArray()));
+                                    codeTable.Add(new CodeTableEntry(indexBuffer.ToArray()));
+                                }
+
+                                first = false;
                                 break;
 
                             case CodeTableEntry.CodeType.Clear:
                                 indexBuffer.Clear();
                                 buildCodeTable(codeTable, startCodeSize);
+                                first = true;
                                 break;
                         }
                     }
@@ -115,7 +123,7 @@ namespace SharpGif
 
         private static byte getColorCodeCount(byte startCodeSize)
         {
-            return (byte)(Math.Pow(2, startCodeSize) - 1);
+            return (byte)(Math.Pow(2, startCodeSize));
         }
 
         #endregion Decode

@@ -35,11 +35,6 @@ namespace SharpGif.Extensions
         /// </summary>
         public string Identifier { get; private set; }
 
-        static GifApplicationExtension()
-        {
-            registerSpecificExtension(functionCode, fromBytes);
-        }
-
         internal static void registerSelfAsGifExtension()
         {
             registerSpecificExtension(functionCode, fromBytes);

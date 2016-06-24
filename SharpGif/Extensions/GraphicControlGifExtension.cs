@@ -33,11 +33,6 @@ namespace SharpGif.Extensions
         /// </summary>
         public byte TransparentColorIndex { get; set; }
 
-        static GraphicControlGifExtension()
-        {
-            registerSpecificExtension(functionCode, fromBytes);
-        }
-
         internal static void registerSelfAsGifExtension()
         {
             registerSpecificExtension(functionCode, fromBytes);

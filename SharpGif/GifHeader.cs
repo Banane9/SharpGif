@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace SharpGif
 {
@@ -91,7 +92,9 @@ namespace SharpGif
 
         private byte[] getBytes()
         {
-            return ToString().Cast<byte>().ToArray();
+            var str = ToString();
+
+            return Encoding.UTF8.GetBytes(str);
         }
 
         private class Version87a : GifHeader

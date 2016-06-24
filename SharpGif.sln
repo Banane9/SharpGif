@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpGif", "SharpGif\SharpGif.csproj", "{4DBDAC4F-D06B-40F4-B1C0-45FBCB94E8CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpGif.Tests", "SharpGif.Tests\SharpGif.Tests.csproj", "{99621713-FBFD-438C-8B56-75D2F87053DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{4DBDAC4F-D06B-40F4-B1C0-45FBCB94E8CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DBDAC4F-D06B-40F4-B1C0-45FBCB94E8CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DBDAC4F-D06B-40F4-B1C0-45FBCB94E8CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99621713-FBFD-438C-8B56-75D2F87053DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99621713-FBFD-438C-8B56-75D2F87053DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99621713-FBFD-438C-8B56-75D2F87053DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99621713-FBFD-438C-8B56-75D2F87053DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -28,6 +28,11 @@ namespace SharpGif
         public GifFrameDescriptor Descriptor { get; private set; }
 
         /// <summary>
+        /// Gets the <see cref="GifExtension"/> preceding this frame.
+        /// </summary>
+        public GifExtension Extension { get; private set; }
+
+        /// <summary>
         /// Gets the <see cref="GifFrame"/> from the byte representation starting from the current position in the <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="GifFrame"/>.</param>
@@ -36,7 +41,9 @@ namespace SharpGif
         {
             var gifFrame = new GifFrame();
 
-            // Add Graphic Control Extension
+            if (GifExtension.IsUpcoming(stream))
+                gifFrame.Extension = GifExtension.FromStream(stream);
+
             gifFrame.Descriptor = GifFrameDescriptor.FromStream(stream);
             gifFrame.ColorTable = gifFrame.Descriptor.HasLocalColorTable ? GifColorTable.FromStream(stream, gifFrame.Descriptor.SizeOfColorTable) : globalColorTable;
             gifFrame.ColorData = GifLZW.Decode(stream);

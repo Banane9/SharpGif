@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 
 namespace SharpGif
 {
@@ -7,7 +8,7 @@ namespace SharpGif
         /// <summary>
         /// Hex: 3B; Char: ';'
         /// </summary>
-        private const byte Trailer = 0x3b;
+        private const byte trailer = 0x3b;
 
         public List<GifFrame> Frames { get; private set; }
 
@@ -25,5 +26,24 @@ namespace SharpGif
         /// Gets the logical screen descriptor of the gif image.
         /// </summary>
         public GifLogicalScreenDescriptor LogicalScreenDescriptor { get; private set; }
+
+        public Gif(Stream stream)
+        {
+            Header = GifHeader.FromStream(stream);
+
+            var bytes = new byte[7];
+            stream.Read(bytes, 0, 7);
+            LogicalScreenDescriptor = GifLogicalScreenDescriptor.FromBytes(bytes);
+
+            if (LogicalScreenDescriptor.HasGlobalColorTable)
+                GlobalColorTable = GifColorTable.FromStream(stream, LogicalScreenDescriptor.SizeOfColorTable);
+
+            Frames = new List<GifFrame>();
+            while (stream.ReadByte() != trailer)
+            {
+                --stream.Position;
+                Frames.Add(GifFrame.FromStream(stream, GlobalColorTable));
+            }
+        }
     }
 }

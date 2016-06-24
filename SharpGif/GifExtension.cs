@@ -49,7 +49,7 @@ namespace SharpGif
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to check.</param>
         /// <returns>Whether the upcoming <see cref="byte"/> in the <see cref="Stream"/> indicates a <see cref="GifExtension"/>.</returns>
-        internal bool IsUpcoming(Stream stream)
+        internal static bool IsUpcoming(Stream stream)
         {
             var readByte = stream.ReadByte();
             --stream.Position;

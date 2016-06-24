@@ -25,12 +25,6 @@ namespace SharpGif.Extensions.ApplicationExtensions
         /// </summary>
         public ushort Loops { get; set; }
 
-        static LoopingGifApplicationExtension()
-        {
-            registerSpecificApplicationExtension(netscapeIdentififierAndAuth, fromBytes);
-            registerSpecificApplicationExtension(animExtsIdentifierAndAuth, fromBytes);
-        }
-
         internal static void registerSelfAsAppExtension()
         {
             registerSpecificApplicationExtension(animExtsIdentifierAndAuth, fromBytes);
