@@ -31,9 +31,7 @@ namespace SharpGif
         {
             Header = GifHeader.FromStream(stream);
 
-            var bytes = new byte[7];
-            stream.Read(bytes, 0, 7);
-            LogicalScreenDescriptor = GifLogicalScreenDescriptor.FromBytes(bytes);
+            LogicalScreenDescriptor = GifLogicalScreenDescriptor.FromStream(stream);
 
             if (LogicalScreenDescriptor.HasGlobalColorTable)
                 GlobalColorTable = GifColorTable.FromStream(stream, LogicalScreenDescriptor.SizeOfColorTable);

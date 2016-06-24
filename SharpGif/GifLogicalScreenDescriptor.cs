@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace SharpGif
@@ -71,14 +72,14 @@ namespace SharpGif
         { }
 
         /// <summary>
-        /// Gets the <see cref="GifLogicalScreenDescriptor"/> corresponding to the byte representation.
+        /// Gets the <see cref="GifLogicalScreenDescriptor"/> from the byte representation starting from the current position in the <see cref="Stream"/>.
         /// </summary>
-        /// <param name="bytes">The byte representation of a <see cref="GifLogicalScreenDescriptor"/>.</param>
+        /// <param name="bytes">The <see cref="Stream"/> containing the byte representation of a <see cref="GifLogicalScreenDescriptor"/>.</param>
         /// <returns>A <see cref="GifLogicalScreenDescriptor"/> corresponding to the byte representation.</returns>
-        internal static GifLogicalScreenDescriptor FromBytes(byte[] bytes)
+        internal static GifLogicalScreenDescriptor FromStream(Stream stream)
         {
-            if (bytes.Length != size)
-                throw new ArgumentOutOfRangeException("bytes", "Has to be " + size + " bytes long!");
+            var bytes = new byte[size];
+            stream.Read(bytes, 0, size);
 
             // Reverse the transformations of GetBytes()
             return new GifLogicalScreenDescriptor
@@ -95,10 +96,10 @@ namespace SharpGif
         }
 
         /// <summary>
-        /// Gets the byte representation of the <see cref="GifLogicalScreenDescriptor"/>.
+        /// Writes the byte representation of this <see cref="GifLogicalScreenDescriptor"/> to the given <see cref="Stream"/>.
         /// </summary>
-        /// <returns>Byte array containing the byte representation of the <see cref="GifLogicalScreenDescriptor"/>.</returns>
-        internal byte[] GetBytes()
+        /// <param name="stream">The <see cref="Stream"/> to write to.</param>
+        internal void ToStream(Stream stream)
         {
             var bytes = new byte[size];
 
@@ -129,7 +130,7 @@ namespace SharpGif
             // Lastly, the pixel aspect ratio
             bytes[6] = PixelAspectRatio;
 
-            return bytes;
+            stream.Write(bytes, 0, size);
         }
     }
 }
