@@ -64,6 +64,7 @@ namespace SharpGif
         internal void ToStream(Stream stream)
         {
             stream.WriteByte(header);
+            stream.WriteByte(FunctionCode);
             GifDataStream.ToStream(stream, getData());
         }
 

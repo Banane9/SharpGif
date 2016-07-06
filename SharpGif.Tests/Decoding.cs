@@ -18,5 +18,24 @@ namespace SharpGif.Tests
             var ms = new MemoryStream(file);
             var gif = new Gif(ms);
         }
+
+        [TestMethod]
+        public void EncodesFile()
+        {
+            var ms = new MemoryStream(file);
+            var gif = new Gif(ms);
+
+            var ms2 = new MemoryStream();
+            gif.ToStream(ms2);
+
+            var bytes = ms2.ToArray();
+            Assert.AreEqual(file.Length, bytes.Length);
+
+            for (var i = 0; i < ms.Length; ++i)
+                Assert.AreEqual(file[i], bytes[i]);
+
+            ms2.Position = 0;
+            var gif2 = new Gif(ms2);
+        }
     }
 }

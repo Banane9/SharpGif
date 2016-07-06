@@ -49,33 +49,17 @@ namespace SharpGif
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="GifHeader"/>.</param>
         /// <returns>A <see cref="GifHeader"/> corresponding to the byte representation.</returns>
-        internal static GifHeader FromStream(Stream stream)
+        internal static GifHeader GetFromStream(Stream stream)
         {
             var buffer = new byte[length];
             stream.Read(buffer, 0, length);
 
-            var gif89aBytes = Gif89a.getBytes();
-            var isGif89a = true;
-            for (var i = 0; i < buffer.Length; ++i)
-                if (buffer[i] != gif89aBytes[i])
-                {
-                    isGif89a = false;
-                    break;
-                }
+            var header = Encoding.UTF8.GetString(buffer, 0, length);
 
-            if (isGif89a)
+            if (header == Gif89a.ToString())
                 return Gif89a;
 
-            var gif87aBytes = Gif87a.getBytes();
-            var isGif87a = true;
-            for (var i = 0; i < buffer.Length; ++i)
-                if (buffer[i] != gif87aBytes[length])
-                {
-                    isGif87a = false;
-                    break;
-                }
-
-            if (isGif87a)
+            if (header == Gif87a.ToString())
                 return Gif87a;
 
             throw new ArgumentOutOfRangeException("stream", "Header not recognized!");
@@ -85,19 +69,12 @@ namespace SharpGif
         /// Writes the byte representation of this <see cref="GifHeader"/> to the given <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to write to.</param>
-        internal void ToStream(Stream stream)
+        internal void WriteToStream(Stream stream)
         {
-            stream.Write(getBytes(), 0, length);
+            stream.Write(Encoding.UTF8.GetBytes(ToString()), 0, length);
         }
 
-        private byte[] getBytes()
-        {
-            var str = ToString();
-
-            return Encoding.UTF8.GetBytes(str);
-        }
-
-        private class Version87a : GifHeader
+        private sealed class Version87a : GifHeader
         {
             public override string Version
             {
@@ -105,7 +82,7 @@ namespace SharpGif
             }
         }
 
-        private class Version89a : GifHeader
+        private sealed class Version89a : GifHeader
         {
             public override string Version
             {

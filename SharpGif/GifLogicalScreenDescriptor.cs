@@ -33,11 +33,7 @@ namespace SharpGif
         /// <summary>
         /// Gets how many bits per primary color minus one the original image had. Unused.
         /// </summary>
-        public byte ColorResolution
-        {
-            // 111 in binary.
-            get { return 7; }
-        }
+        public byte ColorResolution { get; private set; }
 
         /// <summary>
         /// Gets whether the gif image/file has a global color table.
@@ -56,10 +52,7 @@ namespace SharpGif
         /// <para/>
         /// The spec says that if there was a value specified in this byte, N, the actual ratio used would be (N + 15) / 64 for all N != 0.
         /// </summary>
-        public byte PixelAspectRatio
-        {
-            get { return 0; }
-        }
+        public byte PixelAspectRatio { get; private set; }
 
         /// <summary>
         /// Gets the size of the color table. Range: 0-7 (2-256 colors).
@@ -72,27 +65,24 @@ namespace SharpGif
         { }
 
         /// <summary>
-        /// Gets the <see cref="GifLogicalScreenDescriptor"/> from the byte representation starting from the current position in the <see cref="Stream"/>.
+        /// Creates a new instance of the <see cref="GifLogicalScreenDescriptor"/> class
+        /// from the byte representation starting from the current position in the <see cref="Stream"/>.
         /// </summary>
-        /// <param name="bytes">The <see cref="Stream"/> containing the byte representation of a <see cref="GifLogicalScreenDescriptor"/>.</param>
-        /// <returns>A <see cref="GifLogicalScreenDescriptor"/> corresponding to the byte representation.</returns>
-        internal static GifLogicalScreenDescriptor FromStream(Stream stream)
+        /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="GifLogicalScreenDescriptor"/>.</param>
+        internal GifLogicalScreenDescriptor(Stream stream)
         {
             var bytes = new byte[size];
             stream.Read(bytes, 0, size);
 
             // Reverse the transformations of GetBytes()
-            return new GifLogicalScreenDescriptor
-            {
-                CanvasWidth = (ushort)(bytes[0] | (bytes[1] << 8)),
-                CanvasHeight = (ushort)(bytes[2] | (bytes[3] << 8)),
-                HasGlobalColorTable = (bytes[4] & 0x80) > 0,
-                // ColorResolution gets skipped
-                IsColorTableSortedByFrequency = (bytes[4] & 0x8) > 0,
-                SizeOfColorTable = (byte)(bytes[4] & 0x7),
-                BackgroundColorIndex = bytes[5],
-                // PixelAspectRatio gets skipped
-            };
+            CanvasWidth = (ushort)(bytes[0] | (bytes[1] << 8));
+            CanvasHeight = (ushort)(bytes[2] | (bytes[3] << 8));
+            HasGlobalColorTable = (bytes[4] & 0x80) > 0;
+            ColorResolution = (byte)((bytes[4] >> 4) & 0x7);
+            IsColorTableSortedByFrequency = (bytes[4] & 0x8) > 0;
+            SizeOfColorTable = (byte)(bytes[4] & 0x7);
+            BackgroundColorIndex = bytes[5];
+            PixelAspectRatio = bytes[6];
         }
 
         /// <summary>

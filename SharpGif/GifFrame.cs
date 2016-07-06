@@ -45,7 +45,7 @@ namespace SharpGif
                 gifFrame.Extension = GifExtension.FromStream(stream);
 
             gifFrame.Descriptor = GifFrameDescriptor.FromStream(stream);
-            gifFrame.ColorTable = gifFrame.Descriptor.HasLocalColorTable ? GifColorTable.FromStream(stream, gifFrame.Descriptor.SizeOfColorTable) : globalColorTable;
+            gifFrame.ColorTable = gifFrame.Descriptor.HasLocalColorTable ? new GifColorTable(stream, gifFrame.Descriptor.SizeOfColorTable) : globalColorTable;
             gifFrame.ColorData = GifLZW.Decode(stream);
 
             return gifFrame;
@@ -57,7 +57,9 @@ namespace SharpGif
         /// <param name="stream">The <see cref="Stream"/> to write to.</param>
         internal void ToStream(Stream stream)
         {
-            // Add Graphic Control Extension
+            if (Extension != null)
+                Extension.ToStream(stream);
+
             Descriptor.ToStream(stream);
 
             if (Descriptor.HasLocalColorTable)

@@ -42,7 +42,7 @@ namespace SharpGif
         /// <param name="data">The byte data to format.</param>
         internal static void ToStream(Stream stream, byte[] data)
         {
-            var fullSubBlocks = (int)Math.Ceiling(data.Length / (float)maxSubBlockLength);
+            var fullSubBlocks = (int)Math.Floor(data.Length / (float)maxSubBlockLength);
             var trailingLength = (byte)(data.Length % maxSubBlockLength);
 
             var dataBytes = data.ToArray();

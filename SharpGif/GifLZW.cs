@@ -43,9 +43,9 @@ namespace SharpGif
 
                 var codeSize = startCodeSize + 1u;
                 var indexBuffer = new List<byte>();
-                CodeTableEntry.CodeType codeType;
+                CodeTableEntry codeEntry;
                 ushort prevCode = getColorCodeCount(startCodeSize);
-                bool first = true;
+                var first = true;
                 do
                 {
                     var codeBytes = new byte[2];
@@ -54,47 +54,44 @@ namespace SharpGif
 
                     if (code < codeTable.Count)
                     {
-                        codeType = codeTable[code].Type;
+                        codeEntry = codeTable[code];
 
-                        switch (codeType)
+                        if (codeEntry == CodeTableEntry.Clear)
                         {
-                            case CodeTableEntry.CodeType.Color:
-                                indexStream.AddRange(codeTable[code].Colors);
+                            indexBuffer.Clear();
+                            buildCodeTable(codeTable, startCodeSize);
+                            first = true;
+                        }
+                        else if (codeEntry != CodeTableEntry.EndOfInformation)
+                        {
+                            indexStream.AddRange(codeTable[code].Colors);
 
-                                if (!first)
-                                {
-                                    indexBuffer.Clear();
-                                    indexBuffer.AddRange(codeTable[prevCode].Colors);
-                                    indexBuffer.Add(codeTable[code].Colors[0]);
-
-                                    codeTable.Add(new CodeTableEntry(indexBuffer.ToArray()));
-                                }
-
-                                first = false;
-                                break;
-
-                            case CodeTableEntry.CodeType.Clear:
+                            if (!first)
+                            {
                                 indexBuffer.Clear();
-                                buildCodeTable(codeTable, startCodeSize);
-                                first = true;
-                                break;
+                                indexBuffer.AddRange(codeTable[prevCode].Colors);
+                                indexBuffer.Add(codeTable[code].Colors[0]);
+
+                                codeTable.Add(CodeTableEntry.MakeColorEntry(indexBuffer.ToArray()));
+                            }
+
+                            first = false;
                         }
                     }
                     else if (code == codeTable.Count)
                     {
-                        codeType = CodeTableEntry.CodeType.Color;
-
                         indexBuffer.Clear();
                         indexBuffer.AddRange(codeTable[prevCode].Colors);
                         indexBuffer.Add(codeTable[prevCode].Colors[0]);
 
-                        codeTable.Add(new CodeTableEntry(indexBuffer.ToArray()));
+                        codeEntry = CodeTableEntry.MakeColorEntry(indexBuffer.ToArray());
+                        codeTable.Add(codeEntry);
 
                         indexStream.AddRange(codeTable[code].Colors);
                     }
                     else
                     {
-                        throw new ArgumentOutOfRangeException("code", "Encoded code wasn't too high. Expected: " + codeTable.Count + " or less; got: " + code);
+                        throw new ArgumentOutOfRangeException("code", "Encoded code was too large. Expected: " + codeTable.Count + " or less; got: " + code);
                     }
 
                     if (Math.Pow(2, codeSize) <= codeTable.Count)
@@ -102,7 +99,7 @@ namespace SharpGif
 
                     prevCode = code;
                 }
-                while (codeType != CodeTableEntry.CodeType.EndOfInformation);
+                while (codeEntry != CodeTableEntry.EndOfInformation);
             }
 
             return indexStream.ToArray();
@@ -115,10 +112,10 @@ namespace SharpGif
             // startCodeSize has a max of 8, so it will always fit into a byte
             var colorCodes = getColorCodeCount(startCodeSize);
             for (byte code = 0; code < colorCodes; ++code)
-                codeTable.Add(new CodeTableEntry(code));
+                codeTable.Add(CodeTableEntry.MakeColorEntry(code));
 
-            codeTable.Add(new CodeTableEntry(CodeTableEntry.CodeType.Clear));
-            codeTable.Add(new CodeTableEntry(CodeTableEntry.CodeType.EndOfInformation));
+            codeTable.Add(CodeTableEntry.Clear);
+            codeTable.Add(CodeTableEntry.EndOfInformation);
         }
 
         private static byte getColorCodeCount(byte startCodeSize)
@@ -148,39 +145,49 @@ namespace SharpGif
             using (var codeStream = new BitStream.BitStream(new MemoryStream()))
             {
                 var codeTable = new Dictionary<CodeTableEntry, ushort>();
+                buildCodeTable(codeTable, startCodeSize);
 
-                byte codeSize = maxCodeSize + 1;
-                var indexBuffer = new List<byte>();
-                foreach (var color in colorData)
+                var codeSize = (byte)(startCodeSize + 1);
+                codeStream.WriteBits(BitConverter.GetBytes(codeTable[CodeTableEntry.Clear]), 0, codeSize);
+
+                var indexBuffer = new List<byte>(colorData.Take(1));
+                CodeTableEntry tableEntry = null;
+                foreach (var color in colorData.Skip(1))
                 {
                     if (codeSize > maxCodeSize)
                     {
-                        codeStream.WriteBits(BitConverter.GetBytes(codeTable[new CodeTableEntry(CodeTableEntry.CodeType.Clear)]), 0, maxCodeSize);
+                        codeStream.WriteBits(BitConverter.GetBytes(codeTable[CodeTableEntry.Clear]), 0, maxCodeSize);
                         buildCodeTable(codeTable, startCodeSize);
+
                         codeSize = (byte)(startCodeSize + 1);
                     }
 
                     var prevIndexBuffer = indexBuffer.ToArray();
 
                     indexBuffer.Add(color);
-                    var tableEntry = new CodeTableEntry(indexBuffer.ToArray());
+                    tableEntry = CodeTableEntry.MakeColorEntry(indexBuffer.ToArray());
 
                     if (codeTable.ContainsKey(tableEntry))
                         continue;
 
                     codeTable.Add(tableEntry, (ushort)codeTable.Count);
 
-                    codeStream.WriteBits(BitConverter.GetBytes(codeTable[new CodeTableEntry(prevIndexBuffer)]), 0, codeSize);
+                    var bytes = BitConverter.GetBytes(codeTable[CodeTableEntry.MakeColorEntry(prevIndexBuffer)]);
+                    codeStream.WriteBits(bytes, 0, codeSize);
 
                     indexBuffer.Clear();
                     indexBuffer.Add(color);
 
-                    if (Math.Pow(2, codeSize) <= codeTable.Count)
+                    if ((Math.Pow(2, codeSize) + 1) <= codeTable.Count)
                         ++codeSize;
                 }
 
-                codeStream.WriteBits(BitConverter.GetBytes(codeTable[new CodeTableEntry(indexBuffer.ToArray())]), 0, codeSize);
-                codeStream.WriteBits(BitConverter.GetBytes(codeTable[new CodeTableEntry(CodeTableEntry.CodeType.EndOfInformation)]), 0, codeSize);
+                if (codeTable.ContainsKey(tableEntry))
+                    codeStream.WriteBits(BitConverter.GetBytes(codeTable[tableEntry]), 0, codeSize);
+                else
+                    codeStream.WriteBits(BitConverter.GetBytes(codeTable[CodeTableEntry.MakeColorEntry(indexBuffer.ToArray())]), 0, codeSize);
+
+                codeStream.WriteBits(BitConverter.GetBytes(codeTable[CodeTableEntry.EndOfInformation]), 0, codeSize);
                 codeStream.WriteBits(0, (BitNum)(BitNum.MaxValue - codeStream.BitPosition));
 
                 var codes = ((MemoryStream)codeStream.UnderlayingStream).ToArray();
@@ -195,79 +202,111 @@ namespace SharpGif
             // startCodeSize has a max of 8, so it will always fit into a byte
             var colorCodes = getColorCodeCount(startCodeSize);
             for (byte code = 0; code < colorCodes; ++code)
-                codeTable.Add(new CodeTableEntry(code), code);
+                codeTable.Add(CodeTableEntry.MakeColorEntry(code), code);
 
-            codeTable.Add(new CodeTableEntry(CodeTableEntry.CodeType.Clear), (ushort)codeTable.Count);
-            codeTable.Add(new CodeTableEntry(CodeTableEntry.CodeType.EndOfInformation), (ushort)codeTable.Count);
+            codeTable.Add(CodeTableEntry.Clear, (ushort)codeTable.Count);
+            codeTable.Add(CodeTableEntry.EndOfInformation, (ushort)codeTable.Count);
         }
 
         #endregion Encode
 
-        private sealed class CodeTableEntry
+        private abstract class CodeTableEntry
         {
-            public readonly byte[] Colors;
+            public static CodeTableEntry Clear { get; } = new ClearCodeTableEntry();
+            public static CodeTableEntry EndOfInformation { get; } = new EndOfInformationCodeTableEntry();
 
-            public readonly CodeType Type;
+            public abstract byte[] Colors { get; }
 
-            public CodeTableEntry(CodeType type)
+            private CodeTableEntry()
+            { }
+
+            public static CodeTableEntry MakeColorEntry(params byte[] colors)
             {
-                Type = type;
-                Colors = new byte[0];
+                return new ColorCodeTableEntry(colors);
             }
 
-            public CodeTableEntry(params byte[] colors)
+            private sealed class ClearCodeTableEntry : CodeTableEntry
             {
-                Type = CodeType.Color;
-                Colors = colors;
+                public override byte[] Colors
+                {
+                    get { throw new NotSupportedException(); }
+                }
+
+                public override string ToString()
+                {
+                    return "Clear";
+                }
             }
 
-            public static bool operator !=(CodeTableEntry left, CodeTableEntry right)
+            private sealed class ColorCodeTableEntry : CodeTableEntry
             {
-                return !(left == right);
-            }
+                public override byte[] Colors { get; }
 
-            public static bool operator ==(CodeTableEntry left, CodeTableEntry right)
-            {
-                if (object.ReferenceEquals(left, null) && object.ReferenceEquals(right, null))
-                    return true;
+                public ColorCodeTableEntry(params byte[] colors)
+                {
+                    Colors = colors;
+                }
 
-                if ((object.ReferenceEquals(left, null) && !object.ReferenceEquals(right, null))
-                    || (!object.ReferenceEquals(left, null) && object.ReferenceEquals(right, null)))
-                    return false;
+                public static bool operator !=(ColorCodeTableEntry left, ColorCodeTableEntry right)
+                {
+                    return !(left == right);
+                }
 
-                if (left.Type != right.Type
-                    || left.Colors.Length != right.Colors.Length)
-                    return false;
+                public static bool operator ==(ColorCodeTableEntry left, ColorCodeTableEntry right)
+                {
+                    if (object.ReferenceEquals(left, null) && object.ReferenceEquals(right, null))
+                        return true;
 
-                for (var i = 0; i < left.Colors.Length; ++i)
-                    if (left.Colors[i] != right.Colors[i])
+                    if ((object.ReferenceEquals(left, null) && !object.ReferenceEquals(right, null))
+                        || (!object.ReferenceEquals(left, null) && object.ReferenceEquals(right, null)))
                         return false;
 
-                return true;
+                    if (left.Colors.Length != right.Colors.Length)
+                        return false;
+
+                    for (var i = 0; i < left.Colors.Length; ++i)
+                        if (left.Colors[i] != right.Colors[i])
+                            return false;
+
+                    return true;
+                }
+
+                public override bool Equals(object obj)
+                {
+                    var codeTableEntry = obj as ColorCodeTableEntry;
+
+                    return this == codeTableEntry;
+                }
+
+                public override int GetHashCode()
+                {
+                    var hashcode = 0;
+                    unchecked
+                    {
+                        foreach (var color in Colors)
+                            hashcode = hashcode * 13 + color;
+                    }
+
+                    return hashcode;
+                }
+
+                public override string ToString()
+                {
+                    return $"Colors: {{ {string.Join(", ", Colors)} }}";
+                }
             }
 
-            public override bool Equals(object obj)
+            private sealed class EndOfInformationCodeTableEntry : CodeTableEntry
             {
-                var codeTableEntry = obj as CodeTableEntry;
+                public override byte[] Colors
+                {
+                    get { throw new NotSupportedException(); }
+                }
 
-                return this == codeTableEntry;
-            }
-
-            public override int GetHashCode()
-            {
-                return unchecked(Colors.GetHashCode() + (int)Type);
-            }
-
-            public override string ToString()
-            {
-                return Type + ": { " + string.Join(", ", Colors) + " }";
-            }
-
-            public enum CodeType
-            {
-                Color,
-                Clear,
-                EndOfInformation
+                public override string ToString()
+                {
+                    return "EndOfInformation";
+                }
             }
         }
     }

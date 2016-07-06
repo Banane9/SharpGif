@@ -49,7 +49,7 @@ namespace SharpGif
             get { return false; }
         }
 
-        public GifColorTable.Color this[int index]
+        public Color this[int index]
         {
             get { return colors[index]; }
             set
@@ -61,7 +61,7 @@ namespace SharpGif
             }
         }
 
-        public void Add(GifColorTable.Color item)
+        public void Add(Color item)
         {
             if (colors.Count >= MaxSize)
                 throw new Exception("Color Table is full!");
@@ -74,27 +74,27 @@ namespace SharpGif
             colors.Clear();
         }
 
-        public bool Contains(GifColorTable.Color item)
+        public bool Contains(Color item)
         {
             return colors.Contains(item);
         }
 
-        public void CopyTo(GifColorTable.Color[] array, int arrayIndex)
+        public void CopyTo(Color[] array, int arrayIndex)
         {
             colors.CopyTo(array, arrayIndex);
         }
 
-        public IEnumerator<GifColorTable.Color> GetEnumerator()
+        public IEnumerator<Color> GetEnumerator()
         {
             return colors.GetEnumerator();
         }
 
-        public int IndexOf(GifColorTable.Color item)
+        public int IndexOf(Color item)
         {
             return colors.IndexOf(item);
         }
 
-        public void Insert(int index, GifColorTable.Color item)
+        public void Insert(int index, Color item)
         {
             if (colors.Count >= MaxSize)
                 throw new Exception("Color Table is full!");
@@ -102,7 +102,7 @@ namespace SharpGif
             colors.Insert(index, item);
         }
 
-        public bool Remove(GifColorTable.Color item)
+        public bool Remove(Color item)
         {
             return colors.Remove(item);
         }
@@ -120,23 +120,22 @@ namespace SharpGif
         #endregion IList
 
         /// <summary>
-        /// Gets the <see cref="GifColorTable"/> from the byte representation starting from the current position in the <see cref="Stream"/>.
+        /// Creates a new instance of the <see cref="GifColorTable"/> class from the byte representation
+        /// starting from the current position in the <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="GifColorTable"/>.</param>
         /// <param name="screenDescriptorSize">The number of entries in the color table.</param>
-        /// <returns>A <see cref="GifColorTable"/> corresponding to the byte representation.</returns>
-        internal static GifColorTable FromStream(Stream stream, byte screenDescriptorSize)
+        internal GifColorTable(Stream stream, byte screenDescriptorSize)
         {
             if (screenDescriptorSize > MaxScreenDescriptorSize)
-                throw new ArgumentOutOfRangeException("length", "Color Table can only have a maximum Screen Descriptor Size of" + MaxScreenDescriptorSize + "!");
+                throw new ArgumentOutOfRangeException("length",
+                    $"Color Table can only have a maximum Screen Descriptor Size of {MaxScreenDescriptorSize}!");
 
-            var colorTable = new GifColorTable();
             var length = GetNumberOfEntries(screenDescriptorSize);
 
+            // Potential optimization: Reading the whole block of bytes and copying it to a Color Array with pointer magic
             for (var i = 0; i < length; ++i)
-                colorTable.Add(Color.FromStream(stream));
-
-            return colorTable;
+                Add(Color.FromStream(stream));
         }
 
         /// <summary>

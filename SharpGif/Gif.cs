@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace SharpGif
@@ -27,14 +28,19 @@ namespace SharpGif
         /// </summary>
         public GifLogicalScreenDescriptor LogicalScreenDescriptor { get; private set; }
 
+        /// <summary>
+        /// Creates a new instance of the <see cref="Gif"/> class from the byte representation
+        /// starting from the current position in the <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="Gif"/>.</param>
         public Gif(Stream stream)
         {
-            Header = GifHeader.FromStream(stream);
+            Header = GifHeader.GetFromStream(stream);
 
-            LogicalScreenDescriptor = GifLogicalScreenDescriptor.FromStream(stream);
+            LogicalScreenDescriptor = new GifLogicalScreenDescriptor(stream);
 
             if (LogicalScreenDescriptor.HasGlobalColorTable)
-                GlobalColorTable = GifColorTable.FromStream(stream, LogicalScreenDescriptor.SizeOfColorTable);
+                GlobalColorTable = new GifColorTable(stream, LogicalScreenDescriptor.SizeOfColorTable);
 
             Frames = new List<GifFrame>();
             while (stream.ReadByte() != trailer)
@@ -42,6 +48,20 @@ namespace SharpGif
                 --stream.Position;
                 Frames.Add(GifFrame.FromStream(stream, GlobalColorTable));
             }
+        }
+
+        public void ToStream(Stream stream)
+        {
+            Header.WriteToStream(stream);
+            LogicalScreenDescriptor.ToStream(stream);
+
+            if (LogicalScreenDescriptor.HasGlobalColorTable)
+                GlobalColorTable.ToStream(stream);
+
+            foreach (var frame in Frames)
+                frame.ToStream(stream);
+
+            stream.WriteByte(trailer);
         }
     }
 }
