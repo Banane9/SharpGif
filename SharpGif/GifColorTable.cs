@@ -34,7 +34,7 @@ namespace SharpGif
         /// </summary>
         internal byte ScreenDescriptorSize
         {
-            get { return GetSceenDescriptorSize((ushort)colors.Count); }
+            get { return GetScreenDescriptorSize((ushort)colors.Count); }
         }
 
         #region IList
@@ -135,7 +135,7 @@ namespace SharpGif
 
             // Potential optimization: Reading the whole block of bytes and copying it to a Color Array with pointer magic
             for (var i = 0; i < length; ++i)
-                Add(Color.FromStream(stream));
+                Add(new Color(stream));
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace SharpGif
         /// </summary>
         /// <param name="numberOfEntries">The number of entries in the color table.</param>
         /// <returns>The screen descriptor size.</returns>
-        internal static byte GetSceenDescriptorSize(ushort numberOfEntries)
+        internal static byte GetScreenDescriptorSize(ushort numberOfEntries)
         {
             return (byte)(Math.Ceiling(Math.Log(numberOfEntries, 2)) - 1);
         }
@@ -162,13 +162,13 @@ namespace SharpGif
         /// Writes the byte representation of this <see cref="GifColorTable"/> to the given <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to write to.</param>
-        internal void ToStream(Stream stream)
+        internal void WriteToStream(Stream stream)
         {
             // 3 bytes per entry.
             var bytes = new byte[(int)Math.Pow(2, ScreenDescriptorSize + 1) * 3];
 
             foreach (var color in colors)
-                color.ToStream(stream);
+                color.WriteToStream(stream);
         }
 
         /// <summary>
@@ -205,22 +205,20 @@ namespace SharpGif
             }
 
             /// <summary>
-            /// Gets the <see cref="Color"/> from the byte representation starting from the current position in the <see cref="Stream"/>.
+            /// Creates a new instance of the <see cref="Color"/> struct from the byte representation
+            /// starting from the current position in the <see cref="Stream"/>.
             /// </summary>
             /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="Color"/>.</param>
-            /// <returns>A <see cref="Color"/> corresponding to the byte representation.</returns>
-            internal static Color FromStream(Stream stream)
-            {
-                return new Color(
+            internal Color(Stream stream) : this(
                     r: (byte)stream.ReadByte(),
                     g: (byte)stream.ReadByte(),
-                    b: (byte)stream.ReadByte());
-            }
+                    b: (byte)stream.ReadByte())
+            { }
 
             /// <summary>
             /// Writes the byte representation of this <see cref="Color"/> to the <see cref="Stream"/>.
             /// </summary>
-            internal void ToStream(Stream stream)
+            internal void WriteToStream(Stream stream)
             {
                 stream.WriteByte(R);
                 stream.WriteByte(G);

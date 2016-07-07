@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace SharpGif.Extensions
 {
@@ -59,8 +60,8 @@ namespace SharpGif.Extensions
         protected override byte[] getData()
         {
             var data = new List<byte>();
-            data.AddRange(Identifier.Cast<byte>());
-            data.AddRange(AuthenticationCode.Cast<byte>());
+            data.AddRange(Encoding.UTF8.GetBytes(Identifier));
+            data.AddRange(Encoding.UTF8.GetBytes(AuthenticationCode));
             data.AddRange(getApplicationData());
 
             return data.ToArray();
@@ -68,11 +69,11 @@ namespace SharpGif.Extensions
 
         private static GifExtension fromBytes(byte[] bytes)
         {
-            var identifierAndAuth = new string(bytes.Take(identifierLength + authCodeLength).Cast<char>().ToArray());
-            var data = bytes.Skip(identifierLength + authCodeLength).ToArray();
-
+            var identifierAndAuth = Encoding.UTF8.GetString(bytes, 0, identifierLength + authCodeLength);
             var identifier = identifierAndAuth.Substring(0, identifierLength);
             var authCode = identifierAndAuth.Substring(identifierLength);
+
+            var data = bytes.Skip(identifierLength + authCodeLength).ToArray();
 
             var extension = getSpecificApplicationExtension.ContainsKey(identifierAndAuth) ?
                 getSpecificApplicationExtension[identifierAndAuth](data) : new GenericGifApplicationExtension(data);

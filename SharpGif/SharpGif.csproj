@@ -50,7 +50,7 @@
     <Compile Include="GifHeader.cs" />
     <Compile Include="GifLogicalScreenDescriptor.cs" />
     <Compile Include="GifLZW.cs" />
-    <Compile Include="IEnumerableExtension.cs" />
+    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="ModuleInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

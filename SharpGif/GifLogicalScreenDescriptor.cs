@@ -89,7 +89,7 @@ namespace SharpGif
         /// Writes the byte representation of this <see cref="GifLogicalScreenDescriptor"/> to the given <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to write to.</param>
-        internal void ToStream(Stream stream)
+        internal void WriteToStream(Stream stream)
         {
             var bytes = new byte[size];
 

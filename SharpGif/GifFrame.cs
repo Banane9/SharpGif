@@ -33,37 +33,34 @@ namespace SharpGif
         public GifExtension Extension { get; private set; }
 
         /// <summary>
-        /// Gets the <see cref="GifFrame"/> from the byte representation starting from the current position in the <see cref="Stream"/>.
+        /// Creates a new instance of the <see cref="GifFrame"/> class from the byte representation
+        /// starting from the current position in the <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="GifFrame"/>.</param>
-        /// <returns>A <see cref="GifFrame"/> corresponding to the byte representation.</returns>
-        internal static GifFrame FromStream(Stream stream, GifColorTable globalColorTable)
+        /// <param name="globalColorTable">The global color table of the Gif.</param>
+        internal GifFrame(Stream stream, GifColorTable globalColorTable)
         {
-            var gifFrame = new GifFrame();
-
             if (GifExtension.IsUpcoming(stream))
-                gifFrame.Extension = GifExtension.FromStream(stream);
+                Extension = GifExtension.FromStream(stream);
 
-            gifFrame.Descriptor = GifFrameDescriptor.FromStream(stream);
-            gifFrame.ColorTable = gifFrame.Descriptor.HasLocalColorTable ? new GifColorTable(stream, gifFrame.Descriptor.SizeOfColorTable) : globalColorTable;
-            gifFrame.ColorData = GifLZW.Decode(stream);
-
-            return gifFrame;
+            Descriptor = new GifFrameDescriptor(stream);
+            ColorTable = Descriptor.HasLocalColorTable ? new GifColorTable(stream, Descriptor.SizeOfColorTable) : globalColorTable;
+            ColorData = GifLZW.Decode(stream);
         }
 
         /// <summary>
         /// Writes the byte representation of this <see cref="GifFrame"/> to the given <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to write to.</param>
-        internal void ToStream(Stream stream)
+        internal void WriteToStream(Stream stream)
         {
             if (Extension != null)
-                Extension.ToStream(stream);
+                Extension.WriteToStream(stream);
 
-            Descriptor.ToStream(stream);
+            Descriptor.WriteToStream(stream);
 
             if (Descriptor.HasLocalColorTable)
-                ColorTable.ToStream(stream);
+                ColorTable.WriteToStream(stream);
 
             GifLZW.Encode(stream, ColorData, GifColorTable.GetNumberOfEntries(ColorTable.ScreenDescriptorSize));
         }

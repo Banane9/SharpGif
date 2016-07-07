@@ -74,42 +74,39 @@ namespace SharpGif
         { }
 
         /// <summary>
-        /// Gets the <see cref="GifFrameDescriptor"/> from the byte representation starting from the current position in the <see cref="Stream"/>.
+        /// Creates a new instance of the <see cref="GifFrameDescriptor"/> class from the byte representation
+        /// starting from the current position in the <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing the byte representation of a <see cref="GifFrameDescriptor"/>.</param>
-        /// <returns>A <see cref="GifFrameDescriptor"/> corresponding to the byte representation.</returns>
-        internal static GifFrameDescriptor FromStream(Stream stream)
+        internal GifFrameDescriptor(Stream stream)
         {
             var bytes = new byte[size];
             stream.Read(bytes, 0, size);
 
-            if (bytes[0] != (byte)separator)
+            if (bytes[0] != separator)
                 throw new FormatException("Bytes have to start with the image separator char/byte value.");
 
-            // Reverse the transformations of ToStream()
-            return new GifFrameDescriptor
-            {
-                LeftOffset = (ushort)(bytes[1] | (bytes[2] << 8)),
-                TopOffset = (ushort)(bytes[3] | (bytes[4] << 8)),
-                Width = (ushort)(bytes[5] | (bytes[6] << 8)),
-                Height = (ushort)(bytes[7] | (bytes[8] << 8)),
-                HasLocalColorTable = (bytes[9] & 0x80) > 0,
-                IsInterlaced = (bytes[9] & 0x40) > 0,
-                IsColorTableSortedByFrequency = (bytes[9] & 0x20) > 0,
-                SizeOfColorTable = (byte)(bytes[9] & 0x7)
-            };
+            // Reverse the transformations of WriteToStream()
+            LeftOffset = (ushort)(bytes[1] | (bytes[2] << 8));
+            TopOffset = (ushort)(bytes[3] | (bytes[4] << 8));
+            Width = (ushort)(bytes[5] | (bytes[6] << 8));
+            Height = (ushort)(bytes[7] | (bytes[8] << 8));
+            HasLocalColorTable = (bytes[9] & 0x80) > 0;
+            IsInterlaced = (bytes[9] & 0x40) > 0;
+            IsColorTableSortedByFrequency = (bytes[9] & 0x20) > 0;
+            SizeOfColorTable = (byte)(bytes[9] & 0x7);
         }
 
         /// <summary>
         /// Writes the byte representation of this <see cref="GifFrameDescriptor"/> to the given <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to write to.</param>
-        internal void ToStream(Stream stream)
+        internal void WriteToStream(Stream stream)
         {
             var bytes = new byte[size];
 
             // First the image separator
-            bytes[0] = (byte)separator;
+            bytes[0] = separator;
 
             // Then the left offset - for more detailed explanation of the bit working, see same method in GifLogicalScreenDescriptor
             bytes[1] = (byte)(LeftOffset & byte.MaxValue);

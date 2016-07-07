@@ -34,7 +34,7 @@ namespace SharpGif
                 throw new FormatException("Stream has to have an Extension coming up!");
 
             var functionCode = (byte)stream.ReadByte();
-            var data = GifDataStream.FromStream(stream);
+            var data = GifDataStream.Decode(stream);
 
             var extension = getSpecificExtension.ContainsKey(functionCode) ?
                 getSpecificExtension[functionCode](data) : new GenericGifExtension(data);
@@ -51,21 +51,18 @@ namespace SharpGif
         /// <returns>Whether the upcoming <see cref="byte"/> in the <see cref="Stream"/> indicates a <see cref="GifExtension"/>.</returns>
         internal static bool IsUpcoming(Stream stream)
         {
-            var readByte = stream.ReadByte();
-            --stream.Position;
-
-            return readByte == header;
+            return stream.PeakByte() == header;
         }
 
         /// <summary>
         /// Writes the byte representation of this <see cref="GifExtension"/> to the given <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to write to.</param>
-        internal void ToStream(Stream stream)
+        internal void WriteToStream(Stream stream)
         {
             stream.WriteByte(header);
             stream.WriteByte(FunctionCode);
-            GifDataStream.ToStream(stream, getData());
+            GifDataStream.Encode(stream, getData());
         }
 
         /// <summary>

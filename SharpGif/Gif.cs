@@ -43,23 +43,20 @@ namespace SharpGif
                 GlobalColorTable = new GifColorTable(stream, LogicalScreenDescriptor.SizeOfColorTable);
 
             Frames = new List<GifFrame>();
-            while (stream.ReadByte() != trailer)
-            {
-                --stream.Position;
-                Frames.Add(GifFrame.FromStream(stream, GlobalColorTable));
-            }
+            while (stream.PeakByte() != trailer)
+                Frames.Add(new GifFrame(stream, GlobalColorTable));
         }
 
-        public void ToStream(Stream stream)
+        public void WriteToStream(Stream stream)
         {
             Header.WriteToStream(stream);
-            LogicalScreenDescriptor.ToStream(stream);
+            LogicalScreenDescriptor.WriteToStream(stream);
 
             if (LogicalScreenDescriptor.HasGlobalColorTable)
-                GlobalColorTable.ToStream(stream);
+                GlobalColorTable.WriteToStream(stream);
 
             foreach (var frame in Frames)
-                frame.ToStream(stream);
+                frame.WriteToStream(stream);
 
             stream.WriteByte(trailer);
         }
